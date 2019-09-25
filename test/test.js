@@ -28,8 +28,7 @@ describe('getNextUniqueId', () => {
 
   it('should use error first callback pattern', (done) => {
     counter.getNextUniqueId((err, id) => {
-      console.log('err', err, 'id', id);
-
+      // console.log('err', err, 'id', id);
       expect(err).to.be.null;
       expect(id).to.exist;
       done();

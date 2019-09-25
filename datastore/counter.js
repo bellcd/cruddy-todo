@@ -43,11 +43,11 @@ exports.getNextUniqueId = (callback) => {
   var id = null;
 
   readCounter((err, number) => {
-    console.log('number: ', number);
+    // console.log('number: ', number);
     id = number;
-    console.log('id after line 47: ', id);
+    // console.log('id after line 47: ', id);
     ++id;
-    console.log('after incrementer: ', id);
+    // console.log('after incrementer: ', id);
     var paddedNumberId = zeroPaddedNumber(id);
     writeCounter(paddedNumberId, (err, data) => {
       if (err) {
