@@ -37,7 +37,7 @@ exports.readAll = (callback) => {
 };
 
 exports.readOne = (id, callback) => {
-  var filePath = (exports.dataDir+ `/${id}.txt`);
+  var filePath = (exports.dataDir + `/${id}.txt`);
   // readFile has a 'utf8' argument because readFile defaults to null, so in
   // order to work with it as a string the uft8 argument has to be included
   fs.readFile(filePath, 'utf8', (err, text) => {
