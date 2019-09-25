@@ -22,10 +22,18 @@ exports.create = (text, callback) => {
 };
 
 exports.readAll = (callback) => {
-  var data = _.map(items, (text, id) => {
-    return { id, text };
+  fs.readdir(exports.dataDir, (err, items) => {
+    if (err) {
+      callback( new Error ('error retrieving all todos'));
+    } else {
+      var data = _.map(items, (text, id) => {
+        text = text.slice(0, -4);
+        id = text;
+        return { id, text };
+      });
+      callback(null, data);
+    }
   });
-  callback(null, data);
 };
 
 exports.readOne = (id, callback) => {
