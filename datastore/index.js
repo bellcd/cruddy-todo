@@ -56,13 +56,30 @@ exports.readOne = (id, callback) => {
 };
 
 exports.update = (id, text, callback) => {
-  var item = items[id];
-  if (!item) {
-    callback(new Error(`No item with id: ${id}`));
-  } else {
-    items[id] = text;
-    callback(null, { id, text });
-  }
+  var filePath = (exports.dataDir + `/${id}.txt`);
+  // Included fs.open to implement the logic of checking if a file
+  // with that id exists already, and then conditionally open that file. This ensures
+  // that we only create a file when the test wants us to.
+  fs.open(filePath, (err) => {
+    if (err) {
+      callback(new Error('Cannot update something that does not exist'));
+    } else {
+      fs.writeFile(filePath, text, (err) => {
+        if (err) {
+          callback(new Error(`No item with id: ${id}`));
+        } else {
+          callback(null, { id, text });
+        }
+      });
+    }
+  });
+  // var item = items[id];
+  // if (!item) {
+  //   callback(new Error(`No item with id: ${id}`));
+  // } else {
+  //   items[id] = text;
+  //   callback(null, { id, text });
+  // }
 };
 
 exports.delete = (id, callback) => {
