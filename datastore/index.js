@@ -1,4 +1,5 @@
-const fs = require('fs');
+var Promise = require('bluebird');
+var fs = Promise.promisifyAll(require('fs'));
 const path = require('path');
 const _ = require('underscore');
 const counter = require('./counter');
@@ -22,19 +23,45 @@ exports.create = (text, callback) => {
 };
 
 exports.readAll = (callback) => {
-  fs.readdir(exports.dataDir, (err, items) => {
+  // getting a list of all the filenames
+  fs.readdir(exports.dataDir, (err, listOfFileNames) => {
     if (err) {
       callback( new Error ('error retrieving all todos'));
     } else {
-      var data = _.map(items, (text, id) => {
-        text = text.slice(0, -4);
-        id = text;
-        return { id, text };
+      var idArr = [];
+      var promiseArr = _.map(listOfFileNames, (fileName) => { // '00001.txt', '00002.txt', etc
+        let value = fs.readFileAsync(exports.dataDir + `/${fileName}`, 'utf8');
+        idArr.push(fileName.slice(0, -4)); // 00001, 00002, etc. This takes the '.txt' off the fileName
+        return value;
       });
-      callback(null, data);
+      var offset = promiseArr.length;
+      var concatedArr = promiseArr.concat(idArr);
+
+      Promise.all(concatedArr)
+        .then(data => {
+          var result = [];
+          for (let i = 0; i < offset; i++) {
+            result.push({id: data[i + offset], text: data[i]});
+          }
+          callback(null, result);
+        });
     }
   });
 };
+
+// [promise1, promise2, promise3]
+// [id1, id2, id3]
+// [promise1, promise2, promise3, id1, id2, id3]
+// [text1, text2, text3, id1, id2, id3]
+// [{text: text1, id: id1}, {text: text1, id: id1}, ...]
+// make promise array
+// make id array
+// calculate length of promise array, save as offset
+// concat promise array with id array
+// call promise.all with concatted array
+// in .then after promise.all
+// map new array of correctly structured objects from each pair of resolved promise / id
+// callback with new array
 
 exports.readOne = (id, callback) => {
   var filePath = (exports.dataDir + `/${id}.txt`);
