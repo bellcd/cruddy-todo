@@ -20,14 +20,25 @@ app.use(express.static(path.join(__dirname, './public')));
 
 // Create (Crud) -- collection route
 app.post('/todo', (req, res) => {
-  Todo.create(req.body.todoText, (err, newTodo) => {
-    if (err) {
-      res.sendStatus(400);
-    } else {
+  Todo.create(req.body.todoText)
+    .then((newTodo) => {
       res.status(201).json(newTodo);
-    }
-  });
+    })
+    .catch((err) => {
+      res.sendStatus(400);
+    });
 });
+
+// // Create (Crud) -- collection route
+// app.post('/todo', (req, res) => {
+//   Todo.create(req.body.todoText, (err, newTodo) => {
+//     if (err) {
+//       res.sendStatus(400);
+//     } else {
+//       res.status(201).json(newTodo);
+//     }
+//   });
+// });
 
 // Read all (cRud) -- collection route
 app.get('/todo', (req, res) => {

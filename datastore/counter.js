@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const sprintf = require('sprintf-js').sprintf;
+const Promise = require('bluebird');
 
 var counter = 0;
 
@@ -15,51 +16,88 @@ const zeroPaddedNumber = (num) => {
   return sprintf('%05d', num);
 };
 
-const readCounter = (callback) => {
-  fs.readFile(exports.counterFile, (err, fileData) => {
-    if (err) {
-      callback(null, 0);
-    } else {
-      callback(null, Number(fileData));
-    }
-  });
-};
-
-const writeCounter = (counterString, callback) => {
-  // var counterString = zeroPaddedNumber(count);
-  fs.writeFile(exports.counterFile, counterString, (err) => {
-    if (err) {
-      // throw ('error writing counter');
-      callback(new Error ('error writing counter'), null);
-    } else {
-      callback(null, counterString);
-    }
-  });
-};
-
-// Public API - Fix this function //////////////////////////////////////////////
-
-exports.getNextUniqueId = (callback) => {
-  var id = null;
-
-  readCounter((err, number) => {
-    // console.log('number: ', number);
-    id = number;
-    // console.log('id after line 47: ', id);
-    ++id;
-    // console.log('after incrementer: ', id);
-    var paddedNumberId = zeroPaddedNumber(id);
-    writeCounter(paddedNumberId, (err, data) => {
+const readCounter = () => {
+  return new Promise((resolve, reject) => {
+    fs.readFile(exports.counterFile, (err, fileData) => {
       if (err) {
-        callback(err, null);
+        // console.log('err: ', err);
+        // how to handle err of file not found, so set default counter value to 0, separate from other errors??
+
+        // return here closes execution of the callback invocation. We don't actually care about the return value
+        return reject(err);
+      }
+      resolve(Number(fileData));
+    });
+  });
+};
+
+// const readCounter = (callback) => {
+//   fs.readFile(exports.counterFile, (err, fileData) => {
+//     if (err) {
+//       callback(null, 0);
+//     } else {
+//       callback(null, Number(fileData));
+//     }
+//   });
+// };
+
+const writeCounter = (counterString) => {
+  return new Promise((resolve, reject) => {
+    fs.writeFile(exports.counterFile, counterString, (err) => {
+      if (err) {
+        reject(err);
       } else {
-        callback(null, paddedNumberId);
+        resolve(counterString);
       }
     });
   });
-  // counter = counter + 1;
-  // return paddedNumberId
 };
+
+// const writeCounter = (counterString, callback) => {
+//   // var counterString = zeroPaddedNumber(count);
+//   fs.writeFile(exports.counterFile, counterString, (err) => {
+//     if (err) {
+//       // throw ('error writing counter');
+//       callback(new Error ('error writing counter'), null);
+//     } else {
+//       callback(null, counterString);
+//     }
+//   });
+
+// using and returning Pomises
+exports.getNextUniqueId = () => {
+  return new Promise((resolve, reject) => {
+    readCounter()
+      .then((number) => {
+        // console.log('number: ', number);
+        return writeCounter(zeroPaddedNumber(++number));
+      })
+      .then((paddedNumberId) => {
+        // console.log('paddedNumberId: ', paddedNumberId);
+        resolve(paddedNumberId);
+      })
+      .catch((err) => {
+        reject(err);
+      });
+  });
+};
+
+// exports.getNextUniqueId = (callback) => {
+//   var id = null;
+
+//   readCounter((err, number) => {
+//     id = number;
+//     ++id;
+//     var paddedNumberId = zeroPaddedNumber(id);
+//     writeCounter(paddedNumberId, (err, data) => {
+//       if (err) {
+//         callback(err, null);
+//       } else {
+//         callback(null, paddedNumberId);
+//       }
+//     });
+//   });
+// };
 
 
 

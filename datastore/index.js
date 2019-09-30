@@ -9,18 +9,37 @@ var items = {};
 // Public API - Fix these CRUD functions ///////////////////////////////////////
 
 exports.create = (text, callback) => {
-  var id = counter.getNextUniqueId((err, id) => {
-    var filePath = (exports.dataDir + `/${id}.txt`);
-    fs.writeFile(filePath, text, (err) => {
-      if (err) {
-        callback (new Error ('error creating file'));
-      } else {
-        callback(null, { id, text });
-      }
-    });
-    // items[id] = text;
+  return new Promise((resolve, reject) => {
+    counter.getNextUniqueId()
+      .then((id) => {
+        var filePath = (exports.dataDir + `/${id}.txt`);
+        fs.writeFileAsync(filePath, text)
+          .then(() => {
+            resolve({ id, text });
+          })
+          .catch((err) => {
+            reject(err);
+          });
+      })
+      .catch((err) => {
+        reject(err);
+      });
   });
 };
+
+// exports.create = (text, callback) => {
+//   var id = counter.getNextUniqueId((err, id) => {
+//     var filePath = (exports.dataDir + `/${id}.txt`);
+//     fs.writeFile(filePath, text, (err) => {
+//       if (err) {
+//         callback (new Error ('error creating file'));
+//       } else {
+//         callback(null, { id, text });
+//       }
+//     });
+//     // items[id] = text;
+//   });
+// };
 
 exports.readAll = (callback) => {
   // getting a list of all the filenames
