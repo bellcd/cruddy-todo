@@ -42,47 +42,91 @@ app.post('/todo', (req, res) => {
 
 // Read all (cRud) -- collection route
 app.get('/todo', (req, res) => {
-  Todo.readAll((err, todos) => {
-    if (err) {
-      res.sendStatus(400);
-    } else {
+  Todo.readAll()
+    .then((todos) => {
       res.status(200).json(todos);
-    }
-  });
+    })
+    .catch((err) => {
+      res.sendStatus(400);
+    });
 });
+
+// // Read all (cRud) -- collection route
+// app.get('/todo', (req, res) => {
+//   Todo.readAll((err, todos) => {
+//     if (err) {
+//       res.sendStatus(400);
+//     } else {
+//       res.status(200).json(todos);
+//     }
+//   });
+// });
 
 // Read one (cRud) -- member route
 app.get('/todo/:id', (req, res) => {
-  Todo.readOne(req.params.id, (err, todo) => {
-    if (todo) {
+  Todo.readOne(req.params.id)
+    .then((todo) => {
       res.status(200).json(todo);
-    } else {
+    })
+    .catch((err) => {
       res.sendStatus(404);
-    }
-  });
+    });
 });
+
+// // Read one (cRud) -- member route
+// app.get('/todo/:id', (req, res) => {
+//   Todo.readOne(req.params.id, (err, todo) => {
+//     if (todo) {
+//       res.status(200).json(todo);
+//     } else {
+//       res.sendStatus(404);
+//     }
+//   });
+// });
 
 // Update (crUd) -- member route
 app.put('/todo/:id', (req, res) => {
-  Todo.update(req.params.id, req.body.todoText, (err, todo) => {
-    if (todo) {
+  Todo.update(req.params.id, req.body.todoText)
+    .then((todo) => {
       res.status(200).json(todo);
-    } else {
+    })
+    .catch((err) => {
       res.sendStatus(404);
-    }
-  });
+    });
 });
+
+// // Update (crUd) -- member route
+// app.put('/todo/:id', (req, res) => {
+//   Todo.update(req.params.id, req.body.todoText, (err, todo) => {
+//     if (todo) {
+//       res.status(200).json(todo);
+//     } else {
+//       res.sendStatus(404);
+//     }
+//   });
+// });
 
 // Delete (cruD) -- member route
 app.delete('/todo/:id', (req, res) => {
-  Todo.delete(req.params.id, (err) => {
-    if (err) {
-      res.sendStatus(404);
-    } else {
+  Todo.delete(req.params.id)
+    .then(() => {
       res.sendStatus(204);
-    }
-  });
+    })
+    .catch((err) => {
+      res.sendStatus(404);
+    });
 });
+
+// // Delete (cruD) -- member route
+// app.delete('/todo/:id', (req, res) => {
+//   Todo.delete(req.params.id, (err) => {
+//     if (err) {
+//       res.sendStatus(404);
+//     } else {
+//       res.sendStatus(204);
+//     }
+//   });
+// });
 
 // Start & Initialize Web Server ///////////////////////////////////////////////
 

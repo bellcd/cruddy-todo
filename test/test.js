@@ -99,6 +99,25 @@ describe('todos', () => {
   beforeEach(initializeTestCounter);
   beforeEach(cleanTestDatastore);
 
+  // // TODO: add test checking if each method of todos returns a promise
+  // // this is causing an error, not sure why ??
+  // describe('all todos', () => {
+  //   it('should return a promise', (done) => {
+  //     const methodNames = ['create', 'readAll', 'readOne', 'update', 'delete'];
+  //     const collectionOfPromises = methodNames.map((name) => {
+  //       return todos[name]();
+  //     });
+  //     collectionOfPromises.map((promise) => {
+  //       expect(promise).to.be.an.instanceOf(Promise);
+  //     });
+  //     Promise.all(collectionOfPromises)
+  //       .catch((err) => {
+  //         // do nothing on purpose
+  //       });
+  //     done();
+  //   });
+  // });
+
   describe('create', () => {
     it('should create a new file for each todo', (done) => {
       todos.create('todo1')
@@ -124,6 +143,16 @@ describe('todos', () => {
     //   });
     // });
 
+    it('should use the generated unique id as the filename', (done) => {
+      fs.writeFileSync(counter.counterFile, '00142');
+      todos.create('buy fireworks')
+        .then((todo) => {
+          const todoExists = fs.existsSync(path.join(todos.dataDir, '00143.txt'));
+          expect(todoExists).to.be.true;
+          done();
+        });
+    });
+
     // it('should use the generated unique id as the filename', (done) => {
     //   fs.writeFileSync(counter.counterFile, '00142');
     //   todos.create('buy fireworks', (err, todo) => {
@@ -133,6 +162,16 @@ describe('todos', () => {
     //   });
     // });
 
+    it('should only save todo text contents in file', (done) => {
+      const todoText = 'walk the dog';
+      todos.create(todoText)
+        .then((todo) => {
+          const todoFileContents = fs.readFileSync(path.join(todos.dataDir, `${todo.id}.txt`)).toString();
+          expect(todoFileContents).to.equal(todoText);
+          done();
+        });
+    });
+
     // it('should only save todo text contents in file', (done) => {
     //   const todoText = 'walk the dog';
     //   todos.create(todoText, (err, todo) => {
@@ -141,6 +180,16 @@ describe('todos', () => {
     //     done();
     //   });
     // });
+
+    it('should pass a todo object to resolve() on success', (done) => {
+      const todoText = 'refactor callbacks to promises';
+      todos.create(todoText)
+        .then((todo) => {
+          expect(todo).to.include({ text: todoText });
+          expect(todo).to.have.property('id');
+          done();
+        });
+    });
 
     // it('should pass a todo object to the callback on success', (done) => {
     //   const todoText = 'refactor callbacks to promises';
@@ -152,117 +201,232 @@ describe('todos', () => {
     // });
   });
 
-  // describe('readAll', () => {
-  //   it('should return an empty array when there are no todos', (done) => {
-  //     todos.readAll((err, todoList) => {
-  //       expect(err).to.be.null;
-  //       expect(todoList.length).to.equal(0);
-  //       done();
-  //     });
-  //   });
+  describe('readAll', () => {
+    it('should return an empty array when there are no todos', (done) => {
+      todos.readAll()
+        .then((todoList) => {
+          expect(todoList.length).to.equal(0);
+          done();
+        });
+    });
 
-  //   // Refactor this test when completing `readAll`
-  //   it('should return an array with all saved todos', (done) => {
-  //     const todo1text = 'todo 1';
-  //     const todo2text = 'todo 2';
-  //     const expectedTodoList = [{ id: '00001', text: todo1text }, { id: '00002', text: todo2text }];
-  //     todos.create(todo1text, (err, todo) => {
-  //       todos.create(todo2text, (err, todo) => {
-  //         todos.readAll((err, todoList) => {
-  //           expect(todoList).to.have.lengthOf(2);
-  //           expect(todoList).to.deep.include.members(expectedTodoList, 'NOTE: Text field should use the Id initially');
-  //           done();
-  //         });
-  //       });
-  //     });
-  //   });
+    // it('should return an empty array when there are no todos', (done) => {
+    //   todos.readAll((err, todoList) => {
+    //     expect(err).to.be.null;
+    //     expect(todoList.length).to.equal(0);
+    //     done();
+    //   });
+    // });
 
-  // });
+    // Refactor this test when completing `readAll`
+    it('should return an array with all saved todos', (done) => {
+      const todo1text = 'todo 1';
+      const todo2text = 'todo 2';
+      const expectedTodoList = [{ id: '00001', text: todo1text }, { id: '00002', text: todo2text }];
+      todos.create(todo1text)
+        .then(() => {
+          return todos.create(todo2text);
+        })
+        .then(() => {
+          return todos.readAll();
+        })
+        .then((todoList) => {
+          expect(todoList).to.have.lengthOf(2);
+          expect(todoList).to.deep.include.members(expectedTodoList, 'NOTE: Text field should use the Id initially');
+          done();
+        });
+    });
 
-  // describe('readOne', () => {
-  //   it('should return an error for non-existant todo', (done) => {
-  //     todos.readOne('notAnId', (err, todo) => {
-  //       expect(err).to.exist;
-  //       done();
-  //     });
-  //   });
+    // // Refactor this test when completing `readAll`
+    // it('should return an array with all saved todos', (done) => {
+    //   const todo1text = 'todo 1';
+    //   const todo2text = 'todo 2';
+    //   const expectedTodoList = [{ id: '00001', text: todo1text }, { id: '00002', text: todo2text }];
+    //   todos.create(todo1text, (err, todo) => {
+    //     todos.create(todo2text, (err, todo) => {
+    //       todos.readAll((err, todoList) => {
+    //         expect(todoList).to.have.lengthOf(2);
+    //         expect(todoList).to.deep.include.members(expectedTodoList, 'NOTE: Text field should use the Id initially');
+    //         done();
+    //       });
+    //     });
+    //   });
+    // });
+  });
 
-  //   it('should find a todo by id', (done) => {
-  //     const todoText = 'buy chocolate';
-  //     todos.create(todoText, (err, createdTodo) => {
-  //       const id = createdTodo.id;
-  //       todos.readOne(id, (err, readTodo) => {
-  //         expect(readTodo).to.deep.equal({ id, text: todoText });
-  //         done();
-  //       });
-  //     });
-  //   });
-  // });
+  describe('readOne', () => {
+    it('should return an error for non-existant todo', (done) => {
+      todos.readOne('notAnId')
+        .catch((err) => {
+          expect(err).to.exist;
+          done();
+        });
+    });
 
-  // describe('update', () => {
-  //   beforeEach((done) => {
-  //     todos.create('original todo', done);
-  //   });
+    // it('should return an error for non-existant todo', (done) => {
+    //   todos.readOne('notAnId', (err, todo) => {
+    //     expect(err).to.exist;
+    //     done();
+    //   });
+    // });
 
-  //   it('should not change the counter', (done) => {
-  //     todos.update('00001', 'updated todo', (err, todo) => {
-  //       const counterFileContents = fs.readFileSync(counter.counterFile).toString();
-  //       expect(counterFileContents).to.equal('00001');
-  //       done();
-  //     });
-  //   });
 
-  //   it('should update the todo text for existing todo', (done) => {
-  //     const todoId = '00001';
-  //     const updatedTodoText = 'updated todo';
-  //     todos.update(todoId, updatedTodoText, (err, todo) => {
-  //       const todoFileContents = fs.readFileSync(path.join(todos.dataDir, `${todoId}.txt`)).toString();
-  //       expect(todoFileContents).to.equal(updatedTodoText);
-  //       done();
-  //     });
-  //   });
+    it('should find a todo by id', (done) => {
+      const todoText = 'buy chocolate';
+      todos.create(todoText)
+        .then((createdTodo) => {
+          const id = createdTodo.id;
+          return Promise.all([todos.readOne(id), createdTodo]);
+        })
+        .then(([readTodo, createdTodo]) => {
+          expect(readTodo).to.deep.equal({ id: createdTodo.id, text: createdTodo.text });
+          done();
+        });
+    });
 
-  //   it('should not create a new todo for non-existant id', (done) => {
-  //     const initalTodoCount = fs.readdirSync(todos.dataDir).length;
-  //     todos.update('00017', 'bad id', (err, todo) => {
-  //       const currentTodoCount = fs.readdirSync(todos.dataDir).length;
-  //       expect(currentTodoCount).to.equal(initalTodoCount);
-  //       expect(err).to.exist;
-  //       done();
-  //     });
-  //   });
-  // });
+    // it('should find a todo by id', (done) => {
+    //   const todoText = 'buy chocolate';
+    //   todos.create(todoText, (err, createdTodo) => {
+    //     const id = createdTodo.id;
+    //     todos.readOne(id, (err, readTodo) => {
+    //       expect(readTodo).to.deep.equal({ id, text: todoText });
+    //       done();
+    //     });
+    //   });
+    // });
+  });
 
-  // describe('delete', () => {
-  //   beforeEach((done) => {
-  //     todos.create('delete this todo', done);
-  //   });
+  describe('update', () => {
+    beforeEach((done) => {
+      todos.create('original todo')
+        .then(() => {
+          done();
+        });
+    });
 
-  //   it('should not change the counter', (done) => {
-  //     todos.delete('00001', (err) => {
-  //       const counterFileContents = fs.readFileSync(counter.counterFile).toString();
-  //       expect(counterFileContents).to.equal('00001');
-  //       done();
-  //     });
-  //   });
+    it('should not change the counter', (done) => {
+      todos.update('00001', 'updated todo')
+        .then(() => {
+          const counterFileContents = fs.readFileSync(counter.counterFile).toString();
+          expect(counterFileContents).to.equal('00001');
+          done();
+        });
+    });
 
-  //   it('should delete todo file by id', (done) => {
-  //     todos.delete('00001', (err) => {
-  //       const todoExists = fs.existsSync(path.join(todos.dataDir, '00001.txt'));
-  //       expect(todoExists).to.be.false;
-  //       done();
-  //     });
-  //   });
+    // it('should not change the counter', (done) => {
+    //   todos.update('00001', 'updated todo', (err, todo) => {
+    //     const counterFileContents = fs.readFileSync(counter.counterFile).toString();
+    //     expect(counterFileContents).to.equal('00001');
+    //     done();
+    //   });
+    // });
 
-  //   it('should return an error for non-existant id', (done) => {
-  //     const initalTodoCount = fs.readdirSync(todos.dataDir).length;
-  //     todos.delete('07829', (err) => {
-  //       const currentTodoCount = fs.readdirSync(todos.dataDir).length;
-  //       expect(currentTodoCount).to.equal(initalTodoCount);
-  //       expect(err).to.exist;
-  //       done();
-  //     });
-  //   });
-  // });
+    it('should update the todo text for existing todo', (done) => {
+      const todoId = '00001';
+      const updatedTodoText = 'updated todo';
+      todos.update(todoId, updatedTodoText)
+        .then((todo) => {
+          const todoFileContents = fs.readFileSync(path.join(todos.dataDir, `${todoId}.txt`)).toString();
+          expect(todoFileContents).to.equal(updatedTodoText);
+          done();
+        });
+    });
 
+    // it('should update the todo text for existing todo', (done) => {
+    //   const todoId = '00001';
+    //   const updatedTodoText = 'updated todo';
+    //   todos.update(todoId, updatedTodoText, (err, todo) => {
+    //     const todoFileContents = fs.readFileSync(path.join(todos.dataDir, `${todoId}.txt`)).toString();
+    //     expect(todoFileContents).to.equal(updatedTodoText);
+    //     done();
+    //   });
+    // });
+
+    it('should not create a new todo for non-existant id', (done) => {
+      const initalTodoCount = fs.readdirSync(todos.dataDir).length;
+      todos.update('00017', 'bad id')
+        .then((todo) => {
+          const currentTodoCount = fs.readdirSync(todos.dataDir).length;
+          expect(currentTodoCount).to.equal(initalTodoCount);
+        })
+        .catch((err) => {
+          expect(err).to.exist;
+          done();
+        });
+    });
+
+    // it('should not create a new todo for non-existant id', (done) => {
+    //   const initalTodoCount = fs.readdirSync(todos.dataDir).length;
+    //   todos.update('00017', 'bad id', (err, todo) => {
+    //     const currentTodoCount = fs.readdirSync(todos.dataDir).length;
+    //     expect(currentTodoCount).to.equal(initalTodoCount);
+    //     expect(err).to.exist;
+    //     done();
+    //   });
+    // });
+  });
+
+  describe('delete', () => {
+    beforeEach((done) => {
+      todos.create('delete this todo')
+        .then(() => {
+          done();
+        });
+    });
+
+    it('should not change the counter', (done) => {
+      todos.delete('00001')
+        .then(() => {
+          const counterFileContents = fs.readFileSync(counter.counterFile).toString();
+          expect(counterFileContents).to.equal('00001');
+          done();
+        });
+    });
+
+    // it('should not change the counter', (done) => {
+    //   todos.delete('00001', (err) => {
+    //     const counterFileContents = fs.readFileSync(counter.counterFile).toString();
+    //     expect(counterFileContents).to.equal('00001');
+    //     done();
+    //   });
+    // });
+
+    it('should delete todo file by id', (done) => {
+      todos.delete('00001')
+        .then(() => {
+          const todoExists = fs.existsSync(path.join(todos.dataDir, '00001.txt'));
+          expect(todoExists).to.be.false;
+          done();
+        });
+    });
+
+    // it('should delete todo file by id', (done) => {
+    //   todos.delete('00001', (err) => {
+    //     const todoExists = fs.existsSync(path.join(todos.dataDir, '00001.txt'));
+    //     expect(todoExists).to.be.false;
+    //     done();
+    //   });
+    // });
+
+    it('should return an error for non-existant id', (done) => {
+      const initalTodoCount = fs.readdirSync(todos.dataDir).length;
+      todos.delete('07829')
+        .catch((err) => {
+          const currentTodoCount = fs.readdirSync(todos.dataDir).length;
+          expect(currentTodoCount).to.equal(initalTodoCount);
+          expect(err).to.exist;
+          done();
+        });
+    });
+
+    // it('should return an error for non-existant id', (done) => {
+    //   const initalTodoCount = fs.readdirSync(todos.dataDir).length;
+    //   todos.delete('07829', (err) => {
+    //     const currentTodoCount = fs.readdirSync(todos.dataDir).length;
+    //     expect(currentTodoCount).to.equal(initalTodoCount);
+    //     expect(err).to.exist;
+    //     done();
+    //   });
+    // });
+  });
 });
