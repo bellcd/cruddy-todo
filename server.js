@@ -25,6 +25,7 @@ app.post('/todo', (req, res) => {
       res.status(201).json(newTodo);
     })
     .catch((err) => {
+      console.log(err);
       res.sendStatus(400);
     });
 });

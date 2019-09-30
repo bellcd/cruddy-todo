@@ -23,6 +23,7 @@ const readCounter = () => {
         // console.log('err: ', err);
         // how to handle err of file not found, so set default counter value to 0, separate from other errors??
 
+        return resolve(0);
         // return here closes execution of the callback invocation. We don't actually care about the return value
         return reject(err);
       }

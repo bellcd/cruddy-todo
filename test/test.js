@@ -94,6 +94,8 @@ describe('getNextUniqueId', () => {
   // });
 });
 
+// need tests for lines 2 and 3 in the text files of the datastore, holding the createTime and modifiedTime in ms, respectively
+
 describe('todos', () => {
   before(initializeTestFiles);
   beforeEach(initializeTestCounter);
@@ -167,7 +169,7 @@ describe('todos', () => {
       todos.create(todoText)
         .then((todo) => {
           const todoFileContents = fs.readFileSync(path.join(todos.dataDir, `${todo.id}.txt`)).toString();
-          expect(todoFileContents).to.equal(todoText);
+          expect(todoFileContents.split('\n')[0]).to.equal(todoText);
           done();
         });
     });
@@ -327,7 +329,7 @@ describe('todos', () => {
       todos.update(todoId, updatedTodoText)
         .then((todo) => {
           const todoFileContents = fs.readFileSync(path.join(todos.dataDir, `${todoId}.txt`)).toString();
-          expect(todoFileContents).to.equal(updatedTodoText);
+          expect(todoFileContents.split('\n')[0]).to.equal(updatedTodoText);
           done();
         });
     });

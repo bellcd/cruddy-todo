@@ -8,12 +8,30 @@ var items = {};
 
 // Public API - Fix these CRUD functions ///////////////////////////////////////
 
+exports.getStats = (filePath) => {
+  const stats = fs.statSync(filePath);
+  const times = {
+    createTime: stats.birthtimeMs,
+    modifiedTime: stats.mtimeMs
+  };
+
+  return times;
+};
+
+exports.makeTextString = (text, {createTime, modifiedTime}) => {
+  return `${text}\n${createTime}\n${modifiedTime}`;
+};
+
 exports.create = (text) => {
   return new Promise((resolve, reject) => {
     counter.getNextUniqueId()
       .then((id) => {
         var filePath = (exports.dataDir + `/${id}.txt`);
-        fs.writeFileAsync(filePath, text)
+        const times = {
+          createTime: Date.now(),
+          modifiedTime: null
+        };
+        fs.writeFileAsync(filePath, exports.makeTextString(text, times))
           .then(() => {
             resolve({ id, text });
           })
@@ -58,7 +76,8 @@ exports.readAll = () => {
           .then(data => {
             var result = [];
             for (let i = 0; i < offset; i++) {
-              result.push({id: data[i + offset], text: data[i]});
+              // console.log('text: ', data[i]);
+              result.push({id: data[i + offset], text: data[i].split('\n')[0]});
             }
             resolve(result);
           });
@@ -116,7 +135,7 @@ exports.readOne = (id) => {
     var filePath = (exports.dataDir + `/${id}.txt`);
     fs.readFileAsync(filePath, 'utf8')
       .then((text) => {
-        resolve({ id, text });
+        resolve({ id, text: text.split('\n')[0] });
       })
       .catch((err) => {
         reject(err);
@@ -143,7 +162,9 @@ exports.update = (id, text) => {
         reject(err);
       })
       .then(() => {
-        return fs.writeFileAsync(filePath, text);
+        const times = exports.getStats(filePath);
+        times.modifiedTime = Date.now();
+        return fs.writeFileAsync(filePath, exports.makeTextString(text, times));
       })
       .then(() => {
         resolve({ id, text });
